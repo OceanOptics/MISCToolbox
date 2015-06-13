@@ -1,7 +1,7 @@
 MISC Lab Toolbox
 ================
 
-** Matlab tools for oceanographic analysis focusing on the inherent optical properties (IOPs) of the open ocean. **
+**Matlab tools for oceanographic analysis focusing on the inherent optical properties (IOPs) of the open ocean.**
 
 Features
 --------
