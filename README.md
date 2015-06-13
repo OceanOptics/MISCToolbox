@@ -10,7 +10,7 @@ The functions available are:
 * correct_npq.m: Correct for non photochemical quenching using Xing et al. (2012) and/or Sackmann et al. (2008)
 * etimate_mld.m: Estimate the mixed layer depth (MLD) with one of the following method: fixed temperature threshold, fixed density threshold, variable density threshold or fixed density gradient.
 * meshprofile.m: Interpolate data between profile (often used with scatter3m)
-* need_npqc.m: Determine if need a non photochemical quenching
+* need_npqc.m: Determine if need a non photochemical quenching correction
 * scatter3m.m: 4D visualization with earth map (latitude, longitude, depth and measure)
 
 Requirements
