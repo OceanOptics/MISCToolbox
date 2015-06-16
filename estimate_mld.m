@@ -147,6 +147,9 @@ s = size(z);
 if s(2) > s(1)
   z = z';
 end;
+[z, z_i] = sort(z);
+iz_nan = isnan(z);
+z(iz_nan) = [];
 if exist('rho', 'var');
   s = size(rho);
   if s(2) > s(1)
@@ -168,15 +171,45 @@ end;
 
 % Set order according to depth to be sure interp1 works properly
 % Shallow first and deeper last
-[z, z_i] = sort(z);
+% Remove NaN values
 if exist('rho', 'var');
   rho = rho(z_i);
+  rho(iz_nan) = [];
+  ir_nan = isnan(rho);
+  z(ir_nan) = [];
+  rho(ir_nan)=[];
 end;
 if exist('theta', 'var');
   theta = theta(z_i);
+  theta(iz_nan) = [];
+  if exist('rho','var') && ~isempty(ir_nan);
+  	theta(ir_nan) = [];
+  end;
+  it_nan = isnan(theta);
+  z(it_nan) = [];
+  if exist('rho', 'var');
+    rho(it_nan)=[];
+  end;
+  theta(it_nan) = [];
 end;
 if exist('sa', 'var');
   sa = sa(z_i);
+  sa(iz_nan) = [];
+  if exist('ir_nan','var') && ~isempty(ir_nan);
+  	sa(ir_nan) = [];
+  end;
+  if exist('ir_nan','var') && ~isempty(it_nan);
+  	sa(it_nan) = [];
+  end;
+  is_nan = isnan(theta);
+  z(is_nan) = [];
+  if exist('rho', 'var');
+    rho(is_nan)=[];
+  end;
+  if exist('theta', 'var');
+    theta(is_nan)=[];
+  end;
+  sa(is_nan) = [];
 end;
 
 %% Find MLD according to the selected method
@@ -190,11 +223,17 @@ switch method
     while i < size(theta,1) && abs(theta(i) - theta_ref) < theta_criterion;
       i = i + 1;
     end;
-    mld = interp1([theta(i-1) theta(i)], [z(i-1) z(i)], theta_ref-theta_criterion); % +
-    if isnan(mld)
-      mld = interp1([theta(i-1) theta(i)], [z(i-1) z(i)], theta_ref+theta_criterion); % -
+    if i < size(theta,1);
+      mld = interp1([theta(i-1) theta(i)], [z(i-1) z(i)], theta_ref-theta_criterion); % +
+      if isnan(mld)
+        mld = interp1([theta(i-1) theta(i)], [z(i-1) z(i)], theta_ref+theta_criterion); % -
+      end;
+      mld_i = i;
+    else
+      warning('Unable to find MLD with fixed temperature threshold');
+      mld = NaN;
+      mld_i = NaN;
     end;
-    mld_i = i;
   case 'fixed_density'
     % Levitus Density Difference (Lev)
     % Find temperature at reference depth (theta_ref)
