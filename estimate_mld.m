@@ -297,7 +297,7 @@ switch method
     mld(3) = estimate_mld(z, rho, 'fixed_density');
     mld(2) = estimate_mld(z, rho, theta, sa, 'variable_density');
     mld(1) = estimate_mld(z, rho, 'fixed_density_gradient');
-    mld = median(mld);
+    mld = nanmedian(mld);
     [mld_i mld_i] = min(abs(z-mld));
   otherwise
     error('Unknown method');
