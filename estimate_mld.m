@@ -217,13 +217,18 @@ switch method
   case 'fixed_temperature'
     % Kara Isothermal Layer Depth (ILD)
     % Find temperature at reference depth (theta_ref)
-    theta_ref = interp1(z, theta, z_ref,'linear','extrap');
+    [zu, zui] = unique(z); theta_u = theta(zui);
+    if size(zu,1) ~= 1; 
+      theta_ref = interp1(zu, theta_u, z_ref,'linear','extrap');
+    else
+      theta_ref = nanmean(theta_u);
+    end;
     % Find depth where theta = theta_ref +- theta_criterion
     [i i]=min(abs(z-z_ref)); % Start at index of z_ref
     while i < size(theta,1) && abs(theta(i) - theta_ref) < theta_criterion;
       i = i + 1;
     end;
-    if i < size(theta,1);
+    if 1 < i && i < size(theta,1);
       mld = interp1([theta(i-1) theta(i)], [z(i-1) z(i)], theta_ref-theta_criterion); % +
       if isnan(mld)
         mld = interp1([theta(i-1) theta(i)], [z(i-1) z(i)], theta_ref+theta_criterion); % -
@@ -237,7 +242,12 @@ switch method
   case 'fixed_density'
     % Levitus Density Difference (Lev)
     % Find temperature at reference depth (theta_ref)
-    rho_ref = interp1(z, rho, z_ref,'linear','extrap');
+    [zu, zui] = unique(z); rho_u = rho(zui);
+    if size(zu,1) ~= 1; 
+      rho_ref = interp1(zu, rho_u, z_ref,'linear','extrap');
+    else
+      rho_ref = nanmean(rho_u);
+    end;  
     % Find depth by interp 
 %     mld = interp1(rho, z, rho_criterion + rho_ref); % might find it way to low
 %     mld_i = min(abs(z-mld));
@@ -247,7 +257,11 @@ switch method
       i = i + 1;
     end;
     if i > 1
-      mld= interp1([rho(i-1) rho(i)], [z(i-1) z(i)], rho_ref+rho_criterion);
+      if rho(i-1) ~= rho(i)
+        mld= interp1([rho(i-1) rho(i)], [z(i-1) z(i)], rho_ref+rho_criterion);
+      else
+        mld=nanmean([z(i-1) z(i)]);
+      end;
     else
       warning('utils:misc_lab:estimate_mld:fixed_density', 'MLD is first value available of profile');
       mld = z(1);
@@ -256,9 +270,18 @@ switch method
   case 'variable_density'
     % Kara Density Difference (Kara)
     % Interpolate reference values
-    sa_ref = interp1(z, sa, z_ref,'linear','extrap');
-    theta_ref = interp1(z, theta, z_ref,'linear','extrap');
-    rho_ref = interp1(z, rho, z_ref,'linear','extrap');
+    [zu, zui] = unique(z);
+    sa_u = sa(zui); theta_u = theta(zui); rho_u = rho(zui);
+    if size(zu,1) ~= 1; 
+      sa_ref = interp1(zu, sa_u, z_ref,'linear','extrap');
+      theta_ref = interp1(zu, theta_u, z_ref,'linear','extrap');
+      rho_ref = interp1(zu, rho_u, z_ref,'linear','extrap');
+    else
+      sa_ref = nanmean(sa_u);
+      theta_ref = nanmean(theta_u);
+      rho_ref = nanmean(rho_u);
+    end;
+    
     [i i]=min(abs(z-z_ref)); % Start at index of z_ref
     % Compute variable density criterion threshold
     delta_rho = gsw_rho(sa_ref,theta_ref-theta_criterion,0) - gsw_rho(sa_ref,theta_ref,0);
@@ -267,7 +290,11 @@ switch method
       i = i + 1;
     end;
     if i > 1
-      mld= interp1([rho(i-1) rho(i)], [z(i-1) z(i)], rho_ref+delta_rho);
+      if rho(i-1) ~= rho(i)
+        mld= interp1([rho(i-1) rho(i)], [z(i-1) z(i)], rho_ref+delta_rho);
+      else
+        mld= nanmean([z(i-1) z(i)]);
+      end;
     else
       warning('utils:misc_lab:estimate_mld:variable_density', 'MLD is first value available of profile');
       mld = z(1);
@@ -277,8 +304,12 @@ switch method
     % Lukas-Lindstorm Fixed Density Gradient (fxGrad)
     % Interpolate rho every step (2 m)
     step = 2;
-    rho2(:,1) = interp1(z, rho, z_ref:2:z(end),'linear','extrap');
-    
+    [zu, zui] = unique(z); rho_u = rho(zui);
+    if size(zu,1) ~= 1; 
+      rho2(:,1) = interp1(zu, rho_u, z_ref:2:z(end),'linear','extrap');
+    else
+      rho2(:,1) = nanmean(rho_u);
+    end;
     i=1;
     while i < size(rho2,1) && rho2(i) < density_gradient_criterion + rho2(1);
       i = i + 1;
