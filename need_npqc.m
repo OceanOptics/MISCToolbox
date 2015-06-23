@@ -41,7 +41,7 @@ elseif nargin < 1
 end
 
 % Default arguments
-min_sun_elevation = 30; % deg
+min_sun_elevation = 10; % deg
 
 % Get others arguments
 for i=1:nargin-3;
