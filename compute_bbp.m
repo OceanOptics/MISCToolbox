@@ -24,6 +24,10 @@ function [ bbp, beta_p ] = compute_bbp( beta, t, s, lambda, theta, X_p, delta )
 %   bbp NxM double corresponding to the particulate backscattering in m^{-1}
 %   beta_p NxM double corresponding to particulate beta at the angle theta in m^{-1}.sr^{-1}
 %
+%Examples:
+% [bbp_BB9, beta_p_BB9] = compute_bbp(bb9, t, s, wl_bb9, 117);
+% [bbp_VSF, beta_p_VSF] = compute_bbp(eco_vsf, t, s, 650, scat_angle_vsf);
+%
 %m-files required: betasw_ZHH2009
 %
 % Tested with: Matlab R2015a
