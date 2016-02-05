@@ -1,9 +1,17 @@
-function [ bbp, beta_p ] = compute_bbp( beta, t, s, lambda, theta, X_p, delta )
-%COMPUTE_BBP Calculate bbp and beta_p from beta with
+function [ bbp, beta_p ] = estimate_bbp( beta, t, s, lambda, theta, X_p, delta )
+%ESTIMATE_BBP The backscattering coefficient of particles bbp is commonly
+%   estimated from measurement of scattering at a single angle in the
+%   backward hemisphere beta.
+%
+%   $$\beta_p(\theta) &= \beta(\theta) - \beta_{sw}(\theta)\\$$
+%   $$b_{bp} &= 2 \times \pi \times \chi(\theta) \times \beta_{p}(\theta)$$
+%
+%   beta_sw scattering at a single angle from sea water is estimated with:
 %   Xiaodong Zhang, Lianbo Hu, and Ming-Xia He (2009), Scatteirng by pure
 %   seawater: Effect of salinity, Optics Express, Vol. 17, No. 7, 5698-5710
+%   chi (X_p) is 
 %
-%Syntax:  [ bbp, beta_p ] = compute_bbp( beta, t, s, lambda, theta, X_p, delta )
+%Syntax:  [ bbp, beta_p ] = estimate_bbp( beta, t, s, lambda, theta, X_p, delta )
 %
 %Inputs: 
 %    Required:
@@ -13,9 +21,10 @@ function [ bbp, beta_p ] = compute_bbp( beta, t, s, lambda, theta, X_p, delta )
 %    Optional:
 %        lambda 1x1 or 1xM double corresponding to the wavelength in nm
 %           default: 700
-%        theta 1x1 or 1xM double corresponding to the angle in deg
-%           default: 120
-%        X_p 1x1 or 1xM double corresponding to X_p(theta) 
+%        theta 1x1 or 1xM double corresponding to the scattering angle in deg
+%           default: 140 (ECO-FLBB)
+%           MCOMS and ECO-FLNTU are 150
+%        X_p 1x1 or 1xM double,  chi(theta) conversion coefficient at theta
 %           default: interpolated from Sullivan et al. (2013)
 %        delta double corresponding to the delta for Zhang et al. (2009)
 %           default: 0.039 
@@ -25,12 +34,13 @@ function [ bbp, beta_p ] = compute_bbp( beta, t, s, lambda, theta, X_p, delta )
 %   beta_p NxM double corresponding to particulate beta at the angle theta in m^{-1}.sr^{-1}
 %
 %Examples:
-% [bbp_BB9, beta_p_BB9] = compute_bbp(bb9, t, s, wl_bb9, 117);
-% [bbp_VSF, beta_p_VSF] = compute_bbp(eco_vsf, t, s, 650, scat_angle_vsf);
+% [bbp_BB9, beta_p_BB9] = estimate_bbp(bb9, t, s, wl_bb9, 117);
+% [bbp_VSF, beta_p_VSF] = estimate_bbp(eco_vsf, t, s, 650, scat_angle_vsf);
 %
 %m-files required: betasw_ZHH2009
 %
 % Tested with: Matlab R2015a
+%              Matlab R2015b
 %
 % Author: Nils Haentjens, Ms, University of Maine
 % Email: nils.haentjens@maine.edu
@@ -48,7 +58,7 @@ if ~exist('lambda','var');
   lambda = 700;
 end;
 if ~exist('theta','var');
-  theta = 120;
+  theta = 140; % 124
 end;
 if ~exist('delta','var');
   delta = 0.039;
@@ -57,12 +67,12 @@ if ~exist('X_p','var');
   % Interpolate X_p with values from Sullivan et al. 2013
   theta_ref = 90:10:170;
   X_p_ref = [0.684 0.858 1.000 1.097 1.153 1.167 1.156 1.131 1.093];
-  sigma_ref = [0.034 0.032 0.026 0.032 0.044 0.049 0.054 0.054 0.057];
+  %sigma_ref = [0.034 0.032 0.026 0.032 0.044 0.049 0.054 0.054 0.057];
   X_p = interp1(theta_ref, X_p_ref, theta);
 end;
 % Check size of input
 if size(beta) ~= size(t) | size(beta) ~= size(s)
-  error('beta, t and shoulf have same size');
+  error('beta, t and s should have same size');
 end;
 
 
