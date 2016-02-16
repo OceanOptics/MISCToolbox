@@ -62,7 +62,7 @@ if ~exist('method','var');
 end;
 
 % Check size of input/content of input
-if size(beta,2) ~= size(lambda,2) || size(lambda,1) ~= 1
+if size(bbp,2) ~= size(lambda,2) || size(lambda,1) ~= 1
   error('bbp should be NxM and lambda should be 1xM');
 end;
 
@@ -73,16 +73,16 @@ lambda = bsxfun(@times, ones(size(bbp)), lambda);
 switch method
   case 'Behrenfeld2005'
     % switch to bbp(700)
-    bbp_440 = bbp .* (440 / lambda) ^ (-0.78);
+    bbp_440 = bbp .* (440 ./ lambda) .^ (-0.78);
     % estimate poc from bbp(700)
     c_phyto = 13000 * (bbp_440 - 0.00035);
   case 'Graff2015'
     % switch to bbp(700)
-    bbp_440 = bbp .* (440 / lambda) ^ (-0.78);
+    bbp_440 = bbp .* (440 ./ lambda) .^ (-0.78);
     % estimate poc from bbp(700)
     c_phyto = 12128 * bbp_440 + 0.59;
   otherwise
     error('Unknown method %s', method);
 end;
 
-end;
+end

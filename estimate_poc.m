@@ -59,7 +59,7 @@ if ~exist('method','var');
 end;
 
 % Check size of input/content of input
-if size(beta,2) ~= size(lambda,2) || size(lambda,1) ~= 1
+if size(bbp,2) ~= size(lambda,2) || size(lambda,1) ~= 1
   error('bbp should be NxM and lambda should be 1xM');
 end;
 
@@ -70,9 +70,9 @@ lambda = bsxfun(@times, ones(size(bbp)), lambda);
 switch method
   case 'soccom'
     % switch to bbp(700)
-    bbp_700 = bbp .* (700 / lambda) ^ (-0.78);
+    bbp_700 = bbp .* (700 ./ lambda) .^ (-0.78);
     % estimate poc from bbp(700)
-    poc = 3.23 * 104 * bbp_700 + 2.76;
+    poc = 3.23 * 10^4 * bbp_700 + 2.76;
   otherwise
     error('Unknown method %s', method);
 end;
