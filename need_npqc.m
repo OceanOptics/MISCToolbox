@@ -7,7 +7,8 @@ function [ need_qc, sun_elevation ] = need_npqc( dt, lat, lon, varargin )
 %        dt double date and time UTC in matlab datenum format
 %        lat double containing latitude
 %        lon double containing longitude (wrapTo180 preferred)
-%
+%    Optional:
+%        min_sun_elevation double of the minimum sun elevation to [0 90]
 % Outputs:need_qc boolean
 %           true need a npq correction
 %           false don't need a npq correction
@@ -41,7 +42,7 @@ elseif nargin < 1
 end
 
 % Default arguments
-min_sun_elevation = 10; % deg
+min_sun_elevation = 5; % deg
 
 % Get others arguments
 for i=1:nargin-3;
