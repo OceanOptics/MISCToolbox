@@ -1,4 +1,4 @@
-function poc = estimate_poc(bbp, lambda, method)
+function [poc, poc_lower, poc_upper] = estimate_poc(bbp, lambda, method)
 %ESTIMATE_POC Particulate Organic Carbon (POC) is leanearly proportional to 
 %   particulate backscattering bbp, various empirical relationship exist.
 %   
@@ -23,15 +23,19 @@ function poc = estimate_poc(bbp, lambda, method)
 %           default: 700
 %        method string of the name of the method to use
 %           default: 'soccom'
-%           soccom: POC = 3.23 x 104 x bbp(700) + 2.76
+%           soccom: POC = 3.23e4 x bbp(700) + 2.76
 %           an emprirical relationship built for the SOCCOM floats based on
 %           the relationship between the first profile of the floats and
 %           in-situ measurements taken during deployement 
 %           (cruises: PS89, P16S and IN2015v1)
-%           only one method supported to date
+%           NAB08_down or NAB08_up: Specific to North Atlantic in Spring
+%           based on empirical relationship (n=321), with data points
+%           ranging between 0-600 m, recommend downast
 %
 %Outputs:
-%   poc NxM double corresponding to poc in mg.m^{?3}
+%   poc NxM double corresponding to poc in mg.m^{-3}
+%   poc_lower NxM double with corresponding to the lower poc estimation
+%   poc_upper NxM double with corresponding to the upper poc estimation
 %
 %Examples:
 % [poc] = estimate_poc(bbp);
@@ -54,7 +58,7 @@ end;
 if ~exist('lambda','var');
   lambda = 700;
 end;
-if ~exist('method','var');
+if ~exist('method','var') || isempty(method)
   method = 'soccom';
 end;
 
@@ -73,6 +77,20 @@ switch method
     bbp_700 = bbp .* (700 ./ lambda) .^ (-0.78);
     % estimate poc from bbp(700)
     poc = 3.23 * 10^4 * bbp_700 + 2.76;
+    poc_lower = poc * 0.95;
+    poc_upper = poc * 1.05;
+  case 'NAB08_up'
+    % upcast
+    bbp_700 = bbp .* (700 ./ lambda) .^ (-0.78);
+    poc = 43317 * bbp_700 - 18.4;
+    poc_lower = (43317-2092) * bbp_700 - (18.4+5.8);
+    poc_upper = (43317+2092) * bbp_700 - (18.4-5.8);
+  case 'NAB08_down'
+    % downcast
+    bbp_700 = bbp .* (700 ./ lambda) .^ (-0.78);
+    poc = 35422 * bbp_700 - 14.4; 
+    poc_lower = (35422-1754) * bbp_700 - (14.4+5.8); 
+    poc_upper = (35422+1754) * bbp_700 - (14.4-5.8); 
   otherwise
     error('Unknown method %s', method);
 end;
