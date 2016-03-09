@@ -1,32 +1,43 @@
-function [ fchl_qc ] = correct_npq( fchl, z, mld, varargin )
+function [ fchl_qc ] = correct_npq( fchl, z, start_npqc, optimize_start_qc, varargin )
 %CORRECT_NPQ apply a non photochemical quenching (NPQ) correction on fl
 %
 % Inputs: 
 %    Required:
-%        fchl Nx1 array of double containing a profile of fluorescence chlorphyll
-%        z Nx1 array of double containing the depth of the profile
-%        mld double containing the mixed layed depth
+%        fchl Nx1 array of double containing a profile of fluorescence chlorphyll (mg.m^-3)
+%        z Nx1 array of double containing the depth of the profile (m or dBar)
+%        start_npqc double containing depth (m or dBar) at which the
+%           starts to be affected by quenching
+%           can specify euphotic depth Zeu or MLD
 %    Optional:
-%        bb Nx1 array of double containing a profile of backscattering
-%        method string specifying the method to use
-%           xing (default if 3 arguments)
-%             Xing et al., (2012) assumes that, in the mixed layer, chlorophyll
-%             concentration is homogeneous and it proposes to extrapolate up to
-%             surface the highest value of chlorophyll concentration
-%             encountered in the mixed layer paper.
-%           sackmann (reauire bb)
-%             Sackmann et al., (2008) corrects the NPQ effect by extrapolating
-%             up to the surface the fluorescence value learned (LR2) below the
-%             mixed layer (MC) from the relation between fl and bb
-%           average (default if more than 3 arguments)
-%             an average of the previous methods
-%        optimize_start_qc
+%        optimize_start_qc (optional but need to be set before any other input
 %           true
 %             instead of starting the quenching correction at the MLD it's
 %             going to start at the maximum chlorophyll fluoresence value
 %             at shallower depth
 %           false
-%             use MLD as starting point for the quenching correction
+%             use start_npqc as starting point for the quenching correction
+%        bbp Nx1 array of double containing a profile of backscattering (m^-1)
+%        method string specifying the method to use
+%           xing
+%             Xing et al., (2012) assumes that, in the mixed layer, chlorophyll
+%             concentration is homogeneous and it proposes to extrapolate up to
+%             surface the highest value of chlorophyll concentration
+%             encountered in the mixed layer paper.
+%           xing2 (default if 3 arguments)
+%             Same as method xing but take a three point median at mld instead
+%             of a single value.
+%           sackmann (require bbp)
+%             Sackmann et al., (2008) corrects the NPQ effect by extrapolating
+%             up to the surface the fluorescence value learned (LR2) below the
+%             mixed layer (MC) from the relation between fl and bbp
+%           boss (require iPar and no mld can be empty)
+%             Method is in development and paper is in preparation
+%           average (default if more than 3 arguments)
+%             an average of the previous methods
+%        mld double containing the mixed layed depth (m or dBar) required
+%             for method sackman (depth up to which relation between chl
+%             and bbp is learned by default it's the same as start_npqc
+%        ipar0 double required when using method boss (micormol.photon.m^-2.s^-1)
 %
 % Outputs: fchl_qc Nx1 array of double containing chlorophyll fluorescence
 %            corrected for quenching 
@@ -39,7 +50,7 @@ function [ fchl_qc ] = correct_npq( fchl, z, mld, varargin )
 % Author: Nils Haentjens, Ms, University of Maine
 % Email: nils.haentjens@maine.edu
 % Created: 3rd February 2015
-% Last update: 29th May 2015
+% Last update: 30th November 2015
 % 
 % References:
 %    Xing, X., Claustre, H., & Blain, S. (2012). for in vivo chlorophyll
@@ -52,39 +63,42 @@ function [ fchl_qc ] = correct_npq( fchl, z, mld, varargin )
 %      Discussions, 5(4), 2839?2865. http://doi.org/10.5194/bgd-5-2839-2008
 
 % Check input
-if nargin > 6
+if nargin > 7
    error('Too many input arguments')
 elseif nargin < 1
    error('Not enough input arguments')
 end
 
 % Default arguments
-if nargin == 3
-  method = 'xing';
-else
-  method = 'all';
+if nargin < 4
+  optimize_start_qc = false;
+  method = 'xing2';
 end;
-optimize_start_qc = false;
 
 % Get method from arguments
-for i=1:nargin-3;
+for i=1:nargin-4;
   if ischar(varargin{i});
     if strcmp(varargin{i}, 'xing') ||...
+        strcmp(varargin{i}, 'xing2') ||...
         strcmp(varargin{i}, 'sackmann') ||...
+        strcmp(varargin{i}, 'boss') ||...
         strcmp(varargin{i}, 'all');
       method = varargin{i};
+      break;
     else
-      warning('Unknown method %s', varargin{i});
+      error('Unknown method %s', varargin{i});
     end;
   end;
 end;
 
 % Get others arguments
-for i=1:nargin-3;
+for i=1:nargin-4;
   if ismatrix(varargin{i}) && ~ischar(varargin{i}) && ~isscalar(varargin{i});
-    bb = varargin{i};
-  elseif isscalar(varargin{i})
-    optimize_start_qc = varargin{i};
+    bbp = varargin{i};
+  elseif isscalar(varargin{i}) && (strcmp(method, 'sackmann') || strcmp(method, 'all'))
+    mld = varargin{i};
+  elseif isscalar(varargin{i}) && strcmp(method, 'boss')
+    ipar0 = varargin{i};
   elseif ~ischar(varargin{i})
     error('Unknown argument format');
   end;
@@ -92,8 +106,18 @@ end;
 
 % Check missing data
 if strcmp(method, 'all') || strcmp(method, 'sackmann');
-  if ~exist('bb', 'var');
-    error('Method %s need variable bb', method);
+  if ~exist('bbp', 'var');
+    error('Method %s need variable bbp', method);
+  end;
+  if ~exist('mld', 'var');
+    mld = start_npqc;
+  end;
+  if isempty(~isnan(bbp))
+    warning('bbp contains only NaN values, switch to method xing2 only');
+  end;
+elseif strcmp(method, 'boss');
+  if ~exist('ipar0', 'var');
+    error('Method %s need variable ipar0', method);
   end;
 end;
 
@@ -107,51 +131,63 @@ s = size(fchl);
 if s(2) > s(1)
   fchl = fchl';
 end;
-if exist('bb', 'var');
-  s = size(bb);
+if exist('bbp', 'var');
+  s = size(bbp);
   if s(2) > s(1)
-    bb = bb';
+    bbp = bbp';
   end;
 end;
 % Set order according to depth to be sure interp1 works properly
 % Shallow first and deeper last
 [z, z_i] = sort(z);
 fchl = fchl(z_i);
-if exist('bb', 'var');
-  bb = bb(z_i);
+if exist('bbp', 'var');
+  bbp = bbp(z_i);
 end;
 % Build reverse index 
 for i=1:size(z_i, 1);
   ri(z_i(i)) = i;
 end;
 
-% Find index of MLD
-[mld_i mld_i] = min(abs(z - mld));
-% Start quenching correction at MLD
-start_qc = mld_i;
-% Optimize start_qc with max fchl depth
-if optimize_start_qc;
-  % if fchl is higher shallower then take this index as starting point
-  while start_qc > 2 && fchl(start_qc) <= fchl(start_qc-1) * 1.05
-    start_qc = start_qc-1;
+if ~isempty(start_npqc)
+  % Find index of start_npqc
+  [start_npqc_i start_npqc_i] = min(abs(z - start_npqc));
+  if strcmp(method, 'all') || strcmp(method, 'sackmann');
+    % Find index of MLD
+    [mld_i mld_i] = min(abs(z - mld));
   end;
+  % Optimize start_npqc with max fchl depth
+  if optimize_start_qc;
+    % if fchl is higher shallower then take this index as starting point
+    while start_npqc_i > 2 && fchl(start_npqc_i) <= fchl(start_npqc_i-1) * 1.05
+      start_npqc_i = start_npqc_i-1;
+    end;
+  end;
+elseif ~strcmp(method, 'boss');
+  error('Need start_npqc for all methods except boss');
 end;
 
 % Apply correction
 switch method
   case 'xing'
-    fchl_qc = xing(fchl, start_qc);
+    fchl_qc = xing(fchl, start_npqc_i);
+    fchl_qc = fchl_qc(ri);
+  case 'xing2'
+    fchl_qc = xing(fchl, start_npqc_i);
     fchl_qc = fchl_qc(ri);
   case 'sackmann'
-    fchl_qc = sackmann(fchl, bb, start_qc);
+    fchl_qc = sackmann(fchl, bbp, start_npqc_i, mld_i);
+    fchl_qc = fchl_qc(ri);
+  case 'boss'
+    fchl_qc = boss(fchl, z, ipar0);
     fchl_qc = fchl_qc(ri);
   case 'all'
-    fchl_qc1 = xing(fchl, start_qc);
-    fchl_qc2 = sackmann(fchl, bb, start_qc);
+    fchl_qc1 = xing2(fchl, start_npqc_i);
+    fchl_qc2 = sackmann(fchl, bbp, start_npqc_i, mld_i);
     fchl_qc = avg(fchl_qc1, fchl_qc2);
     fchl_qc = fchl_qc(ri);
   otherwise
-    warning('Unknown method');
+    error('Unknown method');
 end;
 end
 
@@ -161,34 +197,58 @@ function fchl_qc = xing(fchl, start_qc)
   fchl_qc(start_qc+1:length(fchl),1) = fchl(start_qc+1:length(fchl));
 end
 
-function fchl_qc = sackmann(fchl, bb, start_qc)
+function fchl_qc = xing2(fchl, start_qc)
+  % XING2 Correct for NPQ applying "Xing et al. (2012)" method
+  %   taking a three point median at start qc instead of a single value
+  if start_qc > 1 && start_qc < size(fchl,1);
+    fchl_qc(1:start_qc,1) = nanmedian(fchl(start_qc-1:start_qc+1));
+  elseif start_qc > 1;
+    fchl_qc(1:start_qc,1) = nanmedian(fchl(start_qc-1:start_qc));
+    warning('xing2: start_qc at shallowest point');
+  elseif start_qc < size(fchl,1);
+    fchl_qc(1:start_qc,1) = nanmedian(fchl(start_qc:start_qc+1));
+    warning('xing2: start_qc at deepest point');
+  else
+    fchl_qc(1:start_qc,1) = fchl(start_qc:start_qc);
+    warning('xing2: only one value');
+  end;
+  fchl_qc(start_qc+1:length(fchl),1) = fchl(start_qc+1:length(fchl));
+end
+
+function fchl_qc = sackmann(fchl, bbp, start_qc, mld)
   % SACKMANN Correct for NPQ applying "Sackmann et al. 2008" method
-  % Learn from fchl > 0.05 && depth <= start_qc
+  % Learn from fchl > 0.05 && depth <= mld
   i = find(fchl > 0.05); % fchl > 0.05
-  j = find(i >= start_qc); % from start_qc to deepest value
+  j = find(i >= mld); % from start_qc to deepest value
   if size(j,1) <= 5; % Minimum number of value to get a good profile (3 is the minimum for a robust lr2)
     b(1) = 0;
-    b(2) = median(fchl(start_qc:end)) / median(bb(start_qc:end)); 
+    b(2) = median(fchl(mld:end)) / median(bbp(mld:end)); 
   else
-    [b, flag, flag, flag] = lr2(bb(i(j)), fchl(i(j))); % if warning saying opposite sign or non correlated then use method just upper
+    [b, flag, flag, flag] = lr2(bbp(i(j)), fchl(i(j))); % if warning saying opposite sign or non correlated then use method just upper
     if flag > 0;
       b(1) = 0;
-      b(2) = median(fchl(start_qc:end)) / median(bb(start_qc:end));
+      b(2) = median(fchl(mld:end)) / median(bbp(mld:end));
     end;
   end;
-  % Extrapolate value up to the surface 
-  fchl_qc(1:start_qc,1) = b(1) + bb(1:start_qc) .* b(2);
+  % Extrapolate value from start_qc up to the surface 
+  fchl_qc(1:start_qc,1) = b(1) + bbp(1:start_qc) .* b(2);
   fchl_qc(start_qc:length(fchl),1) = fchl(start_qc:end); 
+end
+
+function fchl_qc = boss(fchl, z, ipar0)
+  warning('Method not yet available');
+  fchl_qc = fchl;
 end
 
 function fchl_qc = avg(varargin)
   % AVG average all input array, they must be same size
   % Set varargin arrays vertically
-  for i=1:nargin; 
+  for i=1:nargin;
     n = size(varargin{i});
     if n(1) < n(2);
       varargin{i} = varargin{i}(:);
     end;
+    varargin{i} = double(varargin{i});
   end;
   % Convert varargin to array
   var = cell2mat(varargin);
