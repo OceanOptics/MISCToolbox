@@ -1,21 +1,14 @@
 function [poc, poc_lower, poc_upper] = estimate_poc(bbp, lambda, method)
-%ESTIMATE_POC Particulate Organic Carbon (POC) is leanearly proportional to 
-%   particulate backscattering bbp, various empirical relationship exist.
-%   
-%   If require to change wavelenght of bbp the following method is used:
-%   Emmanuel Boss, Marc Picheral, Thomas Leeuw, Alison Chase, Eric Karsenti,
-%   Gabriel Gorsky, Lisa Taylor, Wayne Slade, Josephine Ras, and Herve Claustre.
-%   The characteristics of particulate absorption, scattering and attenuation
-%   coefficients in the surface ocean; Contribution of the Tara Oceans expedition.
-%   Methods in Oceanography, 7:52?62, 2013.
-%   ISSN 22111220. doi: 10.1016/j.mio.2013.11.002.
-%   URL http://dx.doi. org/10.1016/j.mio.2013.11.002.
+%ESTIMATE_POC Particulate Organic Carbon (POC) is leanearly proportional to
+%   particulate backscattering bbp, various empirical relationship exist,
+%   few of them are implemented in this function
 %
-%   Cetinic et al. 2012 list several studies in different region of the ocean
+% /!\ The calculations used are applicable only in the top layer
+%     with a maximum depth defined by max(MLD, Zeu).
 %
 %Syntax:  [ poc ] = estimate_poc( bbp, lambda, method )
 %
-%Inputs: 
+%Inputs:
 %    Required:
 %        bbp NxM double corresponding to the values of the VSF at one angle in m^{-1}
 %    Optional:
@@ -26,7 +19,7 @@ function [poc, poc_lower, poc_upper] = estimate_poc(bbp, lambda, method)
 %           soccom: POC = 3.23e4 x bbp(700) + 2.76
 %           an emprirical relationship built for the SOCCOM floats based on
 %           the relationship between the first profile of the floats and
-%           in-situ measurements taken during deployement 
+%           in-situ measurements taken during deployement
 %           (cruises: PS89, P16S and IN2015v1)
 %           NAB08_down or NAB08_up: Specific to North Atlantic in Spring
 %           based on empirical relationship (n=321), with data points
@@ -40,6 +33,18 @@ function [poc, poc_lower, poc_upper] = estimate_poc(bbp, lambda, method)
 %Examples:
 % [poc] = estimate_poc(bbp);
 % [poc] = estimate_poc(bbp, 700,'soccom');
+%
+%References:
+%     I. Cetinić et al., Particulate organic carbon and inherent optical
+%   properties during 2008 North Atlantic bloom experiment.
+%   J. Geophys. Res. Ocean. 117 (2012), doi:10.1029/2011JC007771.
+%     Emmanuel Boss, Marc Picheral, Thomas Leeuw, Alison Chase, Eric Karsenti,
+%   Gabriel Gorsky, Lisa Taylor, Wayne Slade, Josephine Ras, and Herve Claustre.
+%   The characteristics of particulate absorption, scattering and attenuation
+%   coefficients in the surface ocean; Contribution of the Tara Oceans expedition.
+%   Methods in Oceanography, 7:52?62, 2013.
+%   ISSN 22111220. doi: 10.1016/j.mio.2013.11.002.
+%   URL http://dx.doi. org/10.1016/j.mio.2013.11.002.
 %
 % Tested with: Matlab R2015b
 %
@@ -89,8 +94,8 @@ switch method
     % downcast
     bbp_700 = bbp .* (700 ./ lambda) .^ (-0.78);
     poc = 35422 * bbp_700 - 14.4; 
-    poc_lower = (35422-1754) * bbp_700 - (14.4+5.8); 
-    poc_upper = (35422+1754) * bbp_700 - (14.4-5.8); 
+    poc_lower = (35422-1754) * bbp_700 - (14.4+5.8);
+    poc_upper = (35422+1754) * bbp_700 - (14.4-5.8);
   otherwise
     error('Unknown method %s', method);
 end;
