@@ -4,6 +4,9 @@ function c_phyto = estimate_cphyto(bbp, lambda, method)
 %   relation with bbp at 440 nm, the parameter lambda can be used to
 %   shift the relation to 700 nm.
 %
+% /!\ The calculations used are applicable only in the top layer
+%     with a maximum depth defined by max(MLD, Zeu).
+%
 %References:
 %     Michael J. Behrenfeld, Emmanuel Boss, David a. Siegel, and Donald M. Shea.
 %   Carbon-based ocean produc- tivity and phytoplankton physiology from space.
