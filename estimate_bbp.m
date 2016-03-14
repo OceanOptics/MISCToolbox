@@ -68,7 +68,7 @@ if ~exist('X_p','var');
   theta_ref = 90:10:170;
   X_p_ref = [0.684 0.858 1.000 1.097 1.153 1.167 1.156 1.131 1.093];
   %sigma_ref = [0.034 0.032 0.026 0.032 0.044 0.049 0.054 0.054 0.057];
-  X_p = interp1(theta_ref, X_p_ref, theta);
+  X_p = interp1(theta_ref, X_p_ref, theta, 'spline');
 end;
 % Check size of input
 if size(beta) ~= size(t) | size(beta) ~= size(s)
