@@ -1,4 +1,4 @@
-function [ fchl_qc ] = correct_npq( fchl, z, start_npqc, optimize_start_qc, varargin )
+function [ fchl_qc, qc_delta ] = correct_npq( fchl, z, start_npqc, optimize_start_qc, varargin )
 %CORRECT_NPQ apply a non photochemical quenching (NPQ) correction on fl
 %
 % Inputs: 
@@ -31,26 +31,28 @@ function [ fchl_qc ] = correct_npq( fchl, z, start_npqc, optimize_start_qc, vara
 %             up to the surface the fluorescence value learned (LR2) below the
 %             mixed layer (MC) from the relation between fl and bbp
 %           boss (require iPar and no mld can be empty)
-%             Method is in development and paper is in preparation
-%           average (default if more than 3 arguments)
-%             an average of the previous methods
+%             Method is in development
+%           all (default if more than 3 arguments)
+%             an average of results from xing2 and sackmann
 %        mld double containing the mixed layed depth (m or dBar) required
 %             for method sackman (depth up to which relation between chl
 %             and bbp is learned by default it's the same as start_npqc
 %        ipar0 double required when using method boss (micormol.photon.m^-2.s^-1)
 %
 % Outputs: fchl_qc Nx1 array of double containing chlorophyll fluorescence
-%            corrected for quenching 
+%            corrected for quenching
+%          qc_delta Nx1 array of double containing an estimate of the
+%            absolute error of the quenching correction applied
 %
-% Tested with Matlab R2015a
+% Tested with Matlab R2015a, R2015b and R2016a
 %
-% Required:
+% Required function:
 %   lr2
 %
 % Author: Nils Haentjens, Ms, University of Maine
 % Email: nils.haentjens@maine.edu
 % Created: 3rd February 2015
-% Last update: 30th November 2015
+% Last update: 12 Sept, 2016
 % 
 % References:
 %    Xing, X., Claustre, H., & Blain, S. (2012). for in vivo chlorophyll
@@ -170,34 +172,42 @@ end;
 % Apply correction
 switch method
   case 'xing'
-    fchl_qc = xing(fchl, start_npqc_i);
+    [fchl_qc, qc_delta] = xing(fchl, start_npqc_i);
     fchl_qc = fchl_qc(ri);
+    qc_delta = qc_delta(ri);
   case 'xing2'
-    fchl_qc = xing(fchl, start_npqc_i);
+    [fchl_qc, qc_delta] = xing(fchl, start_npqc_i);
     fchl_qc = fchl_qc(ri);
+    qc_delta = qc_delta(ri);
   case 'sackmann'
-    fchl_qc = sackmann(fchl, bbp, start_npqc_i, mld_i);
+    [fchl_qc, qc_delta] = sackmann(fchl, bbp, start_npqc_i, mld_i);
     fchl_qc = fchl_qc(ri);
+    qc_delta = qc_delta(ri);
   case 'boss'
-    fchl_qc = boss(fchl, z, ipar0);
+    [fchl_qc, qc_delta] = boss(fchl, z, ipar0);
     fchl_qc = fchl_qc(ri);
+    qc_delta = qc_delta(ri);
   case 'all'
     fchl_qc1 = xing2(fchl, start_npqc_i);
     fchl_qc2 = sackmann(fchl, bbp, start_npqc_i, mld_i);
-    fchl_qc = avg(fchl_qc1, fchl_qc2);
+    [fchl_qc, qc_delta] = avg(fchl_qc1, fchl_qc2);
     fchl_qc = fchl_qc(ri);
+    qc_delta = qc_delta(ri);
   otherwise
     error('Unknown method');
 end;
 end
 
-function fchl_qc = xing(fchl, start_qc)
+function [fchl_qc, qc_delta] = xing(fchl, start_qc)
   % XING Correct for NPQ applying "Xing et al. (2012)" method
   fchl_qc(1:start_qc,1) = fchl(start_qc);
   fchl_qc(start_qc+1:length(fchl),1) = fchl(start_qc+1:length(fchl));
+   % Update uncertainties
+  qc_delta(1:start_qc,1) = abs(fchl_qc(1:start_qc,1) - fchl(1:start_qc,1));
+  qc_delta(start_qc:length(fchl),1) = 0;
 end
 
-function fchl_qc = xing2(fchl, start_qc)
+function [fchl_qc, qc_delta] = xing2(fchl, start_qc)
   % XING2 Correct for NPQ applying "Xing et al. (2012)" method
   %   taking a three point median at start qc instead of a single value
   if start_qc > 1 && start_qc < size(fchl,1);
@@ -213,9 +223,12 @@ function fchl_qc = xing2(fchl, start_qc)
     warning('xing2: only one value');
   end;
   fchl_qc(start_qc+1:length(fchl),1) = fchl(start_qc+1:length(fchl));
+  % Update uncertainties
+  qc_delta(1:start_qc,1) = abs(fchl_qc(1:start_qc,1) - fchl(1:start_qc,1));
+  qc_delta(start_qc:length(fchl),1) = 0;
 end
 
-function fchl_qc = sackmann(fchl, bbp, start_qc, mld)
+function [fchl_qc, qc_delta] = sackmann(fchl, bbp, start_qc, mld)
   % SACKMANN Correct for NPQ applying "Sackmann et al. 2008" method
   % Learn from fchl > 0.05 && depth <= mld
   i = find(fchl > 0.05); % fchl > 0.05
@@ -232,15 +245,19 @@ function fchl_qc = sackmann(fchl, bbp, start_qc, mld)
   end;
   % Extrapolate value from start_qc up to the surface 
   fchl_qc(1:start_qc,1) = b(1) + bbp(1:start_qc) .* b(2);
-  fchl_qc(start_qc:length(fchl),1) = fchl(start_qc:end); 
+  fchl_qc(start_qc:length(fchl),1) = fchl(start_qc:end);
+  % Update uncertainties
+  qc_delta(1:start_qc,1) = abs(fchl_qc(1:start_qc,1) - fchl(1:start_qc,1));
+  qc_delta(start_qc:length(fchl),1) = 0;
 end
 
-function fchl_qc = boss(fchl, z, ipar0)
+function [fchl_qc, qc_delta] = boss(fchl, z, ipar0)
   warning('Method not yet available');
   fchl_qc = fchl;
+  qc_delta = NaN(size(fchl,1),1);
 end
 
-function fchl_qc = avg(varargin)
+function [fchl_qc, qc_delta] = avg(varargin)
   % AVG average all input array, they must be same size
   % Set varargin arrays vertically
   for i=1:nargin;
@@ -254,7 +271,9 @@ function fchl_qc = avg(varargin)
   var = cell2mat(varargin);
   % Compute the mean of inputs arrays
   fchl_qc = zeros(size(var,1),1);
+  qc_delta = zeros(size(var,1),1);
   for i=1:size(var, 1);
     fchl_qc(i) = mean(var(i, :));
+    qc_delta(i) = std(var(i, :));
   end;
 end
