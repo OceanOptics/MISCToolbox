@@ -176,7 +176,7 @@ switch method
     fchl_qc = fchl_qc(ri);
     qc_delta = qc_delta(ri);
   case 'xing2'
-    [fchl_qc, qc_delta] = xing(fchl, start_npqc_i);
+    [fchl_qc, qc_delta] = xing2(fchl, start_npqc_i);
     fchl_qc = fchl_qc(ri);
     qc_delta = qc_delta(ri);
   case 'sackmann'
