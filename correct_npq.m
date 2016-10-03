@@ -212,19 +212,22 @@ function [fchl_qc, qc_delta] = xing2(fchl, start_qc)
   %   taking a three point median at start qc instead of a single value
   if start_qc > 1 && start_qc < size(fchl,1);
     fchl_qc(1:start_qc,1) = nanmedian(fchl(start_qc-1:start_qc+1));
+    qc_delta(1:start_qc,1) = nanmedian(fchl(start_qc-1:start_qc+1));
   elseif start_qc > 1;
     fchl_qc(1:start_qc,1) = nanmedian(fchl(start_qc-1:start_qc));
+    qc_delta(1:start_qc,1) = nanstd(fchl(start_qc-1:start_qc));
     warning('xing2: start_qc at shallowest point');
   elseif start_qc < size(fchl,1);
     fchl_qc(1:start_qc,1) = nanmedian(fchl(start_qc:start_qc+1));
+    qc_delta(1:start_qc,1) = nanstd(fchl(start_qc-1:start_qc));
     warning('xing2: start_qc at deepest point');
   else
     fchl_qc(1:start_qc,1) = fchl(start_qc:start_qc);
+    qc_delta(1:start_qc,1) = abs(fchl_qc(1:start_qc,1) - fchl(1:start_qc,1));
     warning('xing2: only one value');
   end;
   fchl_qc(start_qc+1:length(fchl),1) = fchl(start_qc+1:length(fchl));
   % Update uncertainties
-  qc_delta(1:start_qc,1) = abs(fchl_qc(1:start_qc,1) - fchl(1:start_qc,1));
   qc_delta(start_qc:length(fchl),1) = 0;
 end
 
