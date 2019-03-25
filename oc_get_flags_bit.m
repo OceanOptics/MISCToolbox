@@ -6,17 +6,17 @@ function flags_bit = oc_get_bit_flags(flags, disp)
 %Syntax:  flags_bit = get_oc_bit_flags( flags )
 %         flags_bit = get_oc_bit_flags( flags, true )
 %
-%Inputs: 
+%Inputs:
 %    Required:
-%        flags double containing l2_flags from Ocean Color (32 bit integer)
+%        flags <double> l2_flags from Ocean Color (32 bit integer)
 %
 %    Optional:
-%        disp boolean if true will display informations about flags
+%        disp <boolean> display informations about flags if set to true
 %           default: false
 %
 %Outputs: flags_bit Nx1 array of integer containing the bit number of all the flags
 %
-% Tested with Matlab R2015a
+% Tested with Matlab R2015a, 2016a, and 2016b
 %
 % Require: oc_flag_info
 %
@@ -54,5 +54,5 @@ if disp
   % Display flags name and description
   oc_flag_info(flags_bit);
 end;
-  
+
 end

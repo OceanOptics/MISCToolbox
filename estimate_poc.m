@@ -15,8 +15,8 @@ function [poc, poc_lower, poc_upper] = estimate_poc(bbp, lambda, method)
 %        lambda 1x1 or 1xM double corresponding to the wavelength in nm
 %           default: 700
 %        method string of the name of the method to use
-%           default: 'soccom'
-%           soccom: POC = 3.23e4 x bbp(700) + 2.76
+%           default: 'SOCCOM'
+%           soccom: POC = 3.12 x 10^4 x bbp(700) + 3.04
 %           an emprirical relationship built for the SOCCOM floats based on
 %           the relationship between the first profile of the floats and
 %           in-situ measurements taken during deployement
@@ -35,7 +35,7 @@ function [poc, poc_lower, poc_upper] = estimate_poc(bbp, lambda, method)
 % [poc] = estimate_poc(bbp, 700,'soccom');
 %
 %References:
-%     I. Cetinić et al., Particulate organic carbon and inherent optical
+%     I. Cetini?? et al., Particulate organic carbon and inherent optical
 %   properties during 2008 North Atlantic bloom experiment.
 %   J. Geophys. Res. Ocean. 117 (2012), doi:10.1029/2011JC007771.
 %     Emmanuel Boss, Marc Picheral, Thomas Leeuw, Alison Chase, Eric Karsenti,
@@ -64,7 +64,7 @@ if ~exist('lambda','var');
   lambda = 700;
 end;
 if ~exist('method','var') || isempty(method)
-  method = 'soccom';
+  method = 'SOCCOM';
 end;
 
 % Check size of input/content of input
@@ -75,24 +75,27 @@ end;
 % Resize lambda
 lambda = bsxfun(@times, ones(size(bbp)), lambda);
 
+% switch to bbp(700)
+if lambda ~= 700
+  bbp_700 = bbp .* (700 ./ lambda) .^ (-0.78);
+else
+  bbp_700 = bbp;
+end;
+
 % Estimate poc
 switch method
-  case 'soccom'
-    % switch to bbp(700)
-    bbp_700 = bbp .* (700 ./ lambda) .^ (-0.78);
+  case 'SOCCOM'
     % estimate poc from bbp(700)
-    poc = 3.23 * 10^4 * bbp_700 + 2.76;
-    poc_lower = poc * 0.95;
-    poc_upper = poc * 1.05;
+    poc = 3.12 * 10^4 * bbp_700 + 3.04;
+    poc_lower = (3.12 * 10^4 - 2.47 * 10^3) * bbp_700 + 3.04 - 6.78;
+    poc_upper = (3.12 * 10^4 + 2.47 * 10^3) * bbp_700 + 3.04 + 6.78;
   case 'NAB08_up'
     % upcast
-    bbp_700 = bbp .* (700 ./ lambda) .^ (-0.78);
     poc = 43317 * bbp_700 - 18.4;
     poc_lower = (43317-2092) * bbp_700 - (18.4+5.8);
     poc_upper = (43317+2092) * bbp_700 - (18.4-5.8);
   case 'NAB08_down'
     % downcast
-    bbp_700 = bbp .* (700 ./ lambda) .^ (-0.78);
     poc = 35422 * bbp_700 - 14.4; 
     poc_lower = (35422-1754) * bbp_700 - (14.4+5.8);
     poc_upper = (35422+1754) * bbp_700 - (14.4-5.8);

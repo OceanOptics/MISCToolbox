@@ -60,7 +60,7 @@ if any(size(Rrs670) ~= size(Rrs55x)) || any(size(Rrs670) ~= size(Rrs490)) ||...
   error('Rrs have different sizes');
 end;
 if any(size(lambda) ~= [1,1]);
-  error('lambda0 has an unexpected size');
+  error('lambda has an unexpected size');
 end;
 
 

@@ -5,9 +5,9 @@ function oc_flag_info(flags, mode)
 %
 %Syntax:  oc_flag_info(flags)
 %
-%Inputs: 
+%Inputs:
 %    Required:
-%        flags 1xN double containing l2_flags from Ocean Color (32 bit integer)
+%        flags <1xN double> l2_flags from Ocean Color (32 bit integer)
 %     Optional:
 %        mode string containing:
 %           oc for ocean color radiometric flags (32 bits) <- default
@@ -16,7 +16,7 @@ function oc_flag_info(flags, mode)
 %
 %Display: N lines with the name and description of every flag
 %
-% Tested with Matlab R2015a
+% Tested with Matlab R2015a, 2016a, and 2016b
 %
 % Author: Nils Haentjens, Ms, University of Maine
 % Email: nils.haentjens@maine.edu
@@ -95,7 +95,7 @@ switch mode
     oc_flag_sst(13).name='VHISENZ'; oc_flag_sst(13).description='Sensor zenith angle very high';
     oc_flag_sst(14).name='SSTREFVDIFF'; oc_flag_sst(14).description='SST is too different from reference';
     oc_flag_sst(15).name='Spare'; oc_flag_sst(15).description='Spare';
-    
+
     % Display flags name and description
     fprintf('Display of id starts at 1 instead of 0 like Nasa\n');
     for bito=flags;

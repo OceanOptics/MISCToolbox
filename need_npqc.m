@@ -1,4 +1,4 @@
-function [ need_qc, sun_elevation ] = need_npqc( dt, lat, lon, varargin )
+function [ need_qc, sun_elevation ] = need_npqc( dt, lat, lon, min_sun_elevation )
 %NEED_NPQC Determine if the profile need a quenching correction
 %   Base on a model of the sun elevation
 %
@@ -35,31 +35,18 @@ function [ need_qc, sun_elevation ] = need_npqc( dt, lat, lon, varargin )
 %
 
 % Check input
-if nargin > 4
-   error('Too many input arguments')
-elseif nargin < 1
-   error('Not enough input arguments')
-end
+if nargin > 4; error('Too many input arguments');
+elseif nargin < 3; error('Not enough input arguments'); end
+if nargin < 4; min_sun_elevation = 0; end
 
-% Default arguments
-min_sun_elevation = 5; % deg
-
-% Get others arguments
-for i=1:nargin-3;
-  if isscalar(varargin{i})
-    min_sun_elevation = varargin{i};
-  else
-    error('Unknown argument format');
-  end;
-end;
-
-% Process
+% Get sun elevation
 sun_elevation = sunElevation(dt, lat, lon);
+% Check
 if min_sun_elevation < sun_elevation
   need_qc = true;
 else
   need_qc = false;
-end;
+end
 
 end
 

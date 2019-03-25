@@ -1,20 +1,19 @@
 function [val_f, nan_sel] = oc_filter_flags(val, flags, filter)
-%OC_FILTER_FLAGS return the value val for which flags doesn't contain
-%   any filter flag
+%OC_FILTER_FLAGS return the value (val_f) replacing flagged data with NaN
 %
-%Syntax:  val_f = oc_filter_flags( val, flags, filters )
+%Syntax:  val_f = oc_filter_flags( val, flags, filter )
 %
-%Inputs: 
+%Inputs:
 %    Required:
-%        val   NxM double containing values (chlorophyll or par for example)
-%        flags NxM double containing l2_flags from Ocean Color (32 bit integer)
-%        filters 1XL unsigned integer between 1 and 32 containing a list of flags to remove
+%        val   <NxM double> values (chlorophyll or par for example)
+%        flags <NxM double> l2_flags from Ocean Color (32 bit integer)
+%        filters <1XL unsigned integer between 1 and 32> list of flags to remove
 %
 %
-%Outputs: val_f Nx1 of val with NaN values for filtered content
-%         nan_sel NxM logical of flags matching the filter
+%Outputs: val_f <Nx1 double> of val with NaN values for filtered content
+%         nan_sel <NxM logical> of flags matching the filter
 %
-% Tested with Matlab R2015a
+% Tested with Matlab R2015a, 2016a, and 2016b
 %
 % Author: Nils Haentjens, Ms, University of Maine
 % Email: nils.haentjens@maine.edu

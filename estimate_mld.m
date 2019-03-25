@@ -7,7 +7,7 @@ function [ mld, mld_i ] = estimate_mld( z, varargin )
 %   criterion in density (which enables the definition of BLT) can also be
 %   used.
 %
-% Inputs: 
+% Inputs:
 %    Required:
 %        z Nx1 double array of depth profile in m
 %    Optional:
@@ -25,7 +25,7 @@ function [ mld, mld_i ] = estimate_mld( z, varargin )
 %           0.2 degre C by default if fixed_temperature method
 %           0.03 kg/m^3 by default if fixed_density method
 %
-% Outputs:mld double containing the estimate MLD 
+% Outputs:mld double containing the estimate MLD
 %         mld_i integer containing the index of the estimate of the MLD
 %                 for the sorted depth with shallow depth at top
 %
@@ -218,7 +218,7 @@ switch method
     % Kara Isothermal Layer Depth (ILD)
     % Find temperature at reference depth (theta_ref)
     [zu, zui] = unique(z); theta_u = theta(zui);
-    if size(zu,1) ~= 1; 
+    if size(zu,1) ~= 1;
       theta_ref = interp1(zu, theta_u, z_ref,'linear','extrap');
     else
       theta_ref = nanmean(theta_u);
@@ -241,17 +241,17 @@ switch method
     end;
   case 'fixed_density'
     % Levitus Density Difference (Lev)
-    % Find temperature at reference depth (theta_ref)
+    % Find density at reference depth (theta_ref)
     [zu, zui] = unique(z); rho_u = rho(zui);
-    if size(zu,1) ~= 1; 
+    if size(zu,1) ~= 1;
       rho_ref = interp1(zu, rho_u, z_ref,'linear','extrap');
     else
       rho_ref = nanmean(rho_u);
-    end;  
-    % Find depth by interp 
+    end;
+    % Find depth by interp
 %     mld = interp1(rho, z, rho_criterion + rho_ref); % might find it way to low
 %     mld_i = min(abs(z-mld));
-    % Find depth where rho = rho_ref + rho_criterion by invrementation
+    % Find depth where rho = rho_ref + rho_criterion by incrementation
     [i i]=min(abs(z-z_ref)); % Start at index of z_ref
     while i < size(rho,1) && rho(i) < rho_criterion + rho_ref;
       i = i + 1;
@@ -272,7 +272,7 @@ switch method
     % Interpolate reference values
     [zu, zui] = unique(z);
     sa_u = sa(zui); theta_u = theta(zui); rho_u = rho(zui);
-    if size(zu,1) ~= 1; 
+    if size(zu,1) ~= 1;
       sa_ref = interp1(zu, sa_u, z_ref,'linear','extrap');
       theta_ref = interp1(zu, theta_u, z_ref,'linear','extrap');
       rho_ref = interp1(zu, rho_u, z_ref,'linear','extrap');
@@ -281,7 +281,7 @@ switch method
       theta_ref = nanmean(theta_u);
       rho_ref = nanmean(rho_u);
     end;
-    
+
     [i i]=min(abs(z-z_ref)); % Start at index of z_ref
     % Compute variable density criterion threshold
     delta_rho = gsw_rho(sa_ref,theta_ref-theta_criterion,0) - gsw_rho(sa_ref,theta_ref,0);
@@ -305,7 +305,7 @@ switch method
     % Interpolate rho every step (2 m)
     step = 2;
     [zu, zui] = unique(z); rho_u = rho(zui);
-    if size(zu,1) ~= 1; 
+    if size(zu,1) ~= 1;
       rho2(:,1) = interp1(zu, rho_u, z_ref:2:z(end),'linear','extrap');
     else
       rho2(:,1) = nanmean(rho_u);

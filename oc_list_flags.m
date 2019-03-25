@@ -3,15 +3,16 @@ function list_flags = oc_list_flags(flags, bits)
 %
 %Syntax:  list_flags = oc_list_flags(flags)
 %
-%Inputs: 
+%Inputs:
 %    Required:
-%        flags NxM double containing l2_flags from Ocean Color (32 bit integer)
+%        flags <NxM double> l2_flags from Ocean Color (32 bit integer)
 %    Optional:
-%        bits value of 16 for SST or 32 for Ocean Color (default) 
+%        bits <integer of 16 for SST or 32 for Ocean Color>
+%            default: 32
 %
 %Outputs: list_f Lx1 of int32 unique flag in the matrix
 %
-% Tested with Matlab R2015a
+% Tested with Matlab R2015a, 2016a, and 2016b
 %
 % Author: Nils Haentjens, Ms, University of Maine
 % Email: nils.haentjens@maine.edu
@@ -43,4 +44,3 @@ for i=1:size(flags,1);
 end;
 
 end
-    

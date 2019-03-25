@@ -153,21 +153,21 @@ end;
 
 if ~isempty(start_npqc)
   % Find index of start_npqc
-  [start_npqc_i start_npqc_i] = min(abs(z - start_npqc));
+  [~, start_npqc_i] = min(abs(z - start_npqc));
   if strcmp(method, 'all') || strcmp(method, 'sackmann');
     % Find index of MLD
-    [mld_i mld_i] = min(abs(z - mld));
-  end;
+    [~, mld_i] = min(abs(z - mld));
+  end
   % Optimize start_npqc with max fchl depth
-  if optimize_start_qc;
+  if optimize_start_qc
     % if fchl is higher shallower then take this index as starting point
     while start_npqc_i > 2 && fchl(start_npqc_i) <= fchl(start_npqc_i-1) * 1.05
       start_npqc_i = start_npqc_i-1;
-    end;
-  end;
+    end
+  end
 elseif ~strcmp(method, 'boss');
   error('Need start_npqc for all methods except boss');
-end;
+end
 
 % Apply correction
 switch method
@@ -213,14 +213,18 @@ function [fchl_qc, qc_delta] = xing2(fchl, start_qc)
   if start_qc > 1 && start_qc < size(fchl,1);
     fchl_qc(1:start_qc,1) = nanmedian(fchl(start_qc-1:start_qc+1));
     qc_delta(1:start_qc,1) = nanmedian(fchl(start_qc-1:start_qc+1));
+%   elseif start_qc == size(fchl,1)
   elseif start_qc > 1;
     fchl_qc(1:start_qc,1) = nanmedian(fchl(start_qc-1:start_qc));
     qc_delta(1:start_qc,1) = nanstd(fchl(start_qc-1:start_qc));
-    warning('xing2: start_qc at shallowest point');
+%     warning('xing2: start_qc at shallowest point');
+    warning('xing2: start_qc at deepest point');
+%   elseif start_qc == 1
   elseif start_qc < size(fchl,1);
     fchl_qc(1:start_qc,1) = nanmedian(fchl(start_qc:start_qc+1));
-    qc_delta(1:start_qc,1) = nanstd(fchl(start_qc-1:start_qc));
-    warning('xing2: start_qc at deepest point');
+    qc_delta(1:start_qc,1) = nanstd(fchl(start_qc:start_qc+1));
+%     warning('xing2: start_qc at deepest point');
+    warning('xing2: start_qc at shallowest point');
   else
     fchl_qc(1:start_qc,1) = fchl(start_qc:start_qc);
     qc_delta(1:start_qc,1) = abs(fchl_qc(1:start_qc,1) - fchl(1:start_qc,1));
