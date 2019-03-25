@@ -18,7 +18,7 @@ function [ bbp, beta_p, sigma_bbp, sigma_beta_p ] = estimate_bbp( beta, t, s, la
 %
 %Syntax:  [ bbp, beta_p ] = estimate_bbp( beta, t, s, lambda, theta, X_p, delta )
 %
-%Inputs: 
+%Inputs:
 %    Required:
 %        beta NxM double corresponding to the values of the VSF at one angle in m^{-1}.sr^{-1}
 %        t Nx1 double corresponding to the temperature in deg C
@@ -27,15 +27,16 @@ function [ bbp, beta_p, sigma_bbp, sigma_beta_p ] = estimate_bbp( beta, t, s, la
 %        lambda 1x1 or 1xM double corresponding to the wavelength in nm
 %           default: 700
 %        theta 1x1 or 1xM double corresponding to the scattering angle in deg
-%           default: 140 (ECO-FLBB)
-%           MCOMS and ECO-FLNTU are 150
+%           default: 142 (ECO-FLBB and ECO-FLNTU)
+%           MCOM is 150
+%           other single and three channels are 124
 %        X_p 1x1 or 1xM double,  chi_p(theta) conversion coefficient at theta
 %           default: interpolated from Sullivan et al. (2013)
 %        sigma_X_p 1x1 or 1xM double,  sigma_chi_p(theta) relative error of
 %           conversion coefficient at theta. Used only for sigma_bbp
 %           default: interpolated from Sullivan et al. (2013)
 %        delta double corresponding to the delta for Zhang et al. (2009)
-%           default: 0.039 
+%           default: 0.039
 %
 %Outputs:
 %   bbp NxM double corresponding to the particulate backscattering in m^{-1}
@@ -70,7 +71,7 @@ if ~exist('lambda','var');
   lambda = 700;
 end;
 if ~exist('theta','var');
-  theta = 140; % 124
+  theta = 142;
 end;
 if ~exist('delta','var');
   delta = 0.039;

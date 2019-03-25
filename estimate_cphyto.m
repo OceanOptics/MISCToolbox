@@ -41,15 +41,15 @@ function c_phyto = estimate_cphyto(bbp, lambda, method)
 %   Cphyto NxM double phytoplankton carbon (mg.m^{-3})
 %
 %Examples:
-% [poc] = estimate_cphyto(bbp);
-% [poc] = estimate_cphyto(bbp, 700,'Graff2015');
+% [c_phyto] = estimate_cphyto(bbp);
+% [c_phyto] = estimate_cphyto(bbp, 700,'Graff2015');
 %
-% Tested with: Matlab R2015b
+% Tested with: Matlab R2015b, R2017a
 %
 % Author: Nils Haentjens, Ms, University of Maine
 % Email: nils.haentjens@maine.edu
 % Created: February 5th 2016
-% Last update: February 5th 2016
+% Last update: Sept 8th 2017
 
 % Check Nargin
 if nargin > 3
@@ -76,15 +76,15 @@ lambda = bsxfun(@times, ones(size(bbp)), lambda);
 % Estimate c_phyto
 switch method
   case 'Behrenfeld2005'
-    % switch to bbp(700)
+    % switch to bbp(440)
     bbp_440 = bbp .* (440 ./ lambda) .^ (-0.78);
     % estimate c_phyto from bbp(700)
     c_phyto = 13000 * (bbp_440 - 0.00035);
   case 'Graff2015'
-    % switch to bbp(700)
-    bbp_440 = bbp .* (440 ./ lambda) .^ (-0.78);
+    % switch to bbp(470)
+    bbp_470 = bbp .* (470 ./ lambda) .^ (-0.78);
     % estimate c_phyto from bbp(700)
-    c_phyto = 12128 * bbp_440 + 0.59;
+    c_phyto = 12128 * bbp_470 + 0.59;
   otherwise
     error('Unknown method %s', method);
 end;
