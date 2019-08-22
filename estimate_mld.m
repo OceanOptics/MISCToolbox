@@ -31,17 +31,17 @@ function [ mld, mld_i ] = estimate_mld( z, varargin )
 %
 % Examples:
 % % Get MLD from a density profile rho
-% mld = estimate_mld(rho);
+% mld = estimate_mld(z, rho);
 % % or
-% mld = estimate_mld(rho, 'fixed_density');
+% mld = estimate_mld(z, rho, 'fixed_density');
 %
 % % Get MLD from a temperature profile t
-% mld = estimate_mld(t, 'fixed_temperature');
+% mld = estimate_mld(z, t, 'fixed_temperature');
 %
 % % Get MLD with a custom criterion custom_criterion
-% mld = estimate_mld(t, 'fixed_temperature', custom_criterion);
+% mld = estimate_mld(z, t, 'fixed_temperature', custom_criterion);
 % % or
-% mld = estimate_mld(rho, custom_criterion);
+% mld = estimate_mld(z, rho, custom_criterion);
 %
 % % Get MLD with a variable density threshold criterion
 % mld = estimate_mld(z, rho, theta, sa, 'variable_density');
